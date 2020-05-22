@@ -7,7 +7,6 @@ use std::f32;
 use js_sys::Math;
 
 use wasm_bindgen::prelude::*;
-use js_sys::Math::round;
 
 extern crate web_sys;
 
@@ -36,6 +35,16 @@ fn norm_random(mean: f32, std: f32) -> f32 {
     gaus * std + mean
 }
 
+// Fisher and Yates shuffle
+fn shuffle(ar: &mut[usize]) {
+    for i in 0..ar.len() - 2 {
+        let j = (Math::random() * (ar.len() - i) as f64).floor() as usize + i;
+        let x = ar[i];
+        ar[i] = ar[j];
+        ar[j] = x;
+    }
+}
+
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Agent {
@@ -62,8 +71,8 @@ impl Agent {
         self.attention = self.attention + d_a * (2.0 * a_s - self.attention);
     }
 
-    fn decay_attention(&mut self, d_a: f32, n: usize) {
-        self.attention = self.attention - 2.0 * d_a * self.attention / (n as f32)
+    fn decay_attention(&mut self, d_a: f32, n: usize, count: usize) {
+        self.attention = self.attention - 2.0 * d_a * (count as f32) * self.attention / (n as f32)
     }
 
     fn stoch_cusp(&mut self, d_t: f32, s_o: f32, a_min: f32) {
@@ -104,10 +113,6 @@ impl BlockNetwork {
         self.to_string()
     }
 
-    fn sum_of_attention(&self) -> f32 {
-        self.cells.iter().map(|a| a.attention).sum()
-    }
-
     fn rand_neighbours(&self, i: usize) -> usize {
         let size = self.width * self.height;
         let r = Math::random();
@@ -128,33 +133,6 @@ impl BlockNetwork {
         } else {
             size + self.width + 1
         }) % size
-    }
-
-    fn weighted_random_sample(&self) -> Option<usize> {
-        let mut sorted_cells : Vec<_> = self.cells.iter().enumerate().collect();
-        sorted_cells.sort_unstable_by(|(_, a), (_, b)|
-            b.attention.partial_cmp(&a.attention).unwrap()
-        );
-        let at_sum = self.sum_of_attention();
-        let mut sorted_iter = sorted_cells.iter().map(|(i, a)| {
-            let mut a_new = (*a).clone();
-            a_new.attention = a_new.attention / at_sum;
-            (*i, a_new)
-        });
-
-        let mut r = Math::random() as f32;
-        loop {
-            match sorted_iter.next() {
-                Some(agent) => {
-                    r -= agent.1.attention;
-                    if r < 0.0 {
-                        break Some(agent.0);
-                    }
-                },
-                None => break None,
-            }
-
-        }
     }
 }
 
@@ -182,7 +160,8 @@ pub struct Model {
     persuasion: f32,
     r_min: f32,
     t_o: f32,
-    network: BlockNetwork
+    network: BlockNetwork,
+    last_updated_count: usize,
 }
 
 #[wasm_bindgen]
@@ -200,6 +179,7 @@ impl Model {
             r_min,
             t_o,
             network: BlockNetwork::new(l, l),
+            last_updated_count: 0,
         }
     }
 
@@ -213,28 +193,37 @@ impl Model {
     }
 
     pub fn tick(&mut self) {
-        log!("tick");
-        if let Some(agent_index) = self.network.weighted_random_sample() {
-            let mut agent = self.network.cells[agent_index];
-            let neigh_index = self.network.rand_neighbours(agent_index);
-            let mut neigh = self.network.cells[neigh_index];
+        let mut shuffeld_range: Vec<usize> = (0..self.n).collect();
+        shuffle(&mut shuffeld_range);
+        let mut count = 0;
+        for idx in shuffeld_range {
+            let mut agent = self.network.cells[idx];
+            let r = Math::random() as f32;
+            if agent.attention > r {
+                count += 1;
+                let neigh_index = self.network.rand_neighbours(idx);
+                let mut neigh = self.network.cells[neigh_index];
 
-            agent.update_info(&self.network.cells[neigh_index], self.persuasion, self.r_min);
-            neigh.update_info(&self.network.cells[agent_index], self.persuasion, self.r_min);
+                agent.update_info(&self.network.cells[neigh_index], self.persuasion, self.r_min);
+                neigh.update_info(&self.network.cells[idx], self.persuasion, self.r_min);
 
-            agent.update_attention(self.d_a, self.a_star);
-            neigh.update_attention(self.d_a, self.a_star);
+                agent.update_attention(self.d_a, self.a_star);
+                neigh.update_attention(self.d_a, self.a_star);
 
-            self.network.cells[agent_index] = agent;
-            self.network.cells[neigh_index] = neigh;
+                self.network.cells[idx] = agent;
+                self.network.cells[neigh_index] = neigh;
+            }
         }
 
         self.network.cells = self.network.cells.iter().map(|a| {
             let mut a_new = a.clone();
             a_new.stoch_cusp(self.d_t, self.s_o, self.a_min);
-            a_new.decay_attention(self.d_a, self.n);
+            a_new.decay_attention(self.d_a, self.n, count);
             a_new
         }).collect();
+
+        self.last_updated_count = count;
+        log!("count: {}", count);
     }
 
     pub fn cell_ptr(&self) -> *const Agent {
@@ -243,5 +232,25 @@ impl Model {
 
     pub fn render(&self) -> String {
         self.network.to_string()
+    }
+
+    pub fn count(&self) -> usize {
+        self.last_updated_count
+    }
+
+    pub fn set_d_a(&mut self, d_a: f32) {
+        self.d_a = d_a;
+    }
+
+    pub fn set_r_min(&mut self, r_min: f32) {
+        self.r_min = r_min;
+    }
+
+    pub fn set_persuasion(&mut self, persuasion: f32) {
+        self.persuasion = persuasion;
+    }
+
+    pub fn inspect_agent(&self, row: usize, col: usize) -> String {
+        self.network.cells[row * self.network.width + col].to_string()
     }
 }

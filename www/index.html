@@ -5,7 +5,7 @@
     <title>Hello wasm-pack!</title>
 
     <style>
-      body {
+      #drawing {
         position: absolute;
         top: 0;
         left: 0;
@@ -16,13 +16,36 @@
         align-items: center;
         justify-content: center;
       }
+      #ui {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+      }
     </style>
   </head>
   <body>
-    <canvas id="canvas"></canvas>
-    <div>
+    <div id="drawing">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div id="ui">
       <button id="tick-but">tick</button>
-      <button id="pp-but">play/pause</button>
+      <button id="pp-but">play</button>
+      <button id="reset-but">Reset</button>
+      <br>
+      <input id="d_a" type="range" min="0" max="0.5" value="0.1" step="0.01">
+      <label id="d_a_label" for="d_a">d_a: 0.1</label>
+      <br>
+      <input id="r_min" type="range" min="0" max="1" value="0" step="0.01">
+      <label id="r_min_label" for="r_min">r_min: 0</label>
+      <br>
+      <input id="persuasion" type="range" min="0" max="10" value="1" step="0.1">
+      <label id="persuasion_label" for="persuasion">persuasion: 1</label>
+      <br>
+      <pre>(o, a, i)</pre>
+      <br>
+      <pre id="agent-info"></pre>
+      <br>
+      <pre id="update-info"></pre>
     </div>
     <script src="./bootstrap.js"></script>
   </body>

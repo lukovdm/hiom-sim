@@ -1,5 +1,6 @@
-import { Model, init } from "hiom-sim";
-import { memory } from "hiom-sim/hiom_sim_bg";
+import {init, Model} from "hiom-sim";
+import {memory} from "hiom-sim/hiom_sim_bg";
+
 var colormap = require('colormap');
 
 init();
@@ -8,6 +9,8 @@ const SIZE = 200;
 const MIN_O = -1.5;
 const MAX_O = 1.5;
 const NSHADES = 100;
+const S_I = 0;
+const T_O = 0;
 
 const CELL_SIZE = 5; // px
 const GRID_COLOR = "#CCCCCC";
@@ -18,15 +21,22 @@ let colors = colormap({
     alpha: 1
 })
 
-const model = Model.new(SIZE, 0, 0.2, 2, 0.1, 0);
+const tick_but = document.getElementById("tick-but");
+const pp_but = document.getElementById("pp-but");
+const reset_but = document.getElementById("reset-but");
+const agent_info_pre = document.getElementById("agent-info");
+const update_info_pre = document.getElementById("update-info");
+const d_a_slider = document.getElementById("d_a");
+const r_min_slider = document.getElementById("r_min");
+const persuasion_slider = document.getElementById("persuasion");
+
+let model = Model.new(SIZE, S_I, d_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
 const width = SIZE;
 const height = SIZE;
 
 let pause = true;
-
-const tick_but = document.getElementById("tick-but");
-const pp_but = document.getElementById("pp-but");
-const act_but = document.getElementById("act-but");
+let mouse_x = null;
+let mouse_y = null;
 
 const canvas = document.getElementById("canvas");
 canvas.height = (CELL_SIZE + 1) * height + 1;
@@ -48,8 +58,14 @@ canvas.addEventListener("click", event => {
 
     model.add_activist(row, col);
 
-    drawGrid();
-    drawCells();
+    draw();
+});
+
+canvas.addEventListener("mousemove", event => {
+    mouse_x = event.clientX;
+    mouse_y = event.clientY;
+
+    update_info();
 });
 
 tick_but.onclick = () => {
@@ -60,24 +76,30 @@ pp_but.onclick = () => {
     pause = !pause;
     if (!pause) {
         requestAnimationFrame(play);
+        pp_but.innerText = "pause";
+    } else {
+        pp_but.innerText = "play";
     }
 }
 
-const drawGrid = () => {
-    ctx.beginPath();
-    ctx.strokeStyle = GRID_COLOR;
+reset_but.onclick = () => {
+    model = Model.new(SIZE, S_I, d_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
+    draw();
+}
 
-    for(let i = 0; i <= width; i++) {
-        ctx.moveTo(i * (CELL_SIZE + 1) + 1, 0);
-        ctx.lineTo(i * (CELL_SIZE + 1) + 1, (CELL_SIZE + 1) * height + 1);
-    }
+r_min_slider.oninput = () => {
+    model.set_r_min(r_min_slider.value);
+    document.getElementById("r_min_label").textContent = "r_min: " + r_min_slider.value;
+}
 
-    for(let i = 0; i <= height; i++) {
-        ctx.moveTo(0, i * (CELL_SIZE + 1) + 1);
-        ctx.lineTo((CELL_SIZE + 1) * width + 1, i * (CELL_SIZE + 1) + 1);
-    }
+d_a_slider.oninput = () => {
+    model.set_d_a(d_a_slider.value);
+    document.getElementById("d_a_label").textContent = "d_a: " + d_a_slider.value;
+}
 
-    ctx.stroke();
+persuasion_slider.oninput = () => {
+    model.set_persuasion(persuasion_slider.value);
+    document.getElementById("persuasion_label").textContent = "persuasion: " + persuasion_slider.value;
 }
 
 const getIndex = (row, column) => {
@@ -96,7 +118,7 @@ const drawCells = () => {
 
             let op = (Math.min(Math.max(agents[idx], MIN_O), MAX_O) + 1.5) / 3;
 
-            ctx.fillStyle = colors[Math.round(op * NSHADES)];
+            ctx.fillStyle = colors[NSHADES - 1 - Math.floor(op * NSHADES)];
 
             ctx.fillRect(
                 col * (CELL_SIZE + 1) + 1,
@@ -111,8 +133,30 @@ const drawCells = () => {
 };
 
 const draw = () => {
-    drawGrid();
+    // drawGrid();
     drawCells();
+    update_info();
+}
+
+const update_info = () => {
+    update_info_pre.textContent = "agents updated: " + model.count();
+
+    if (mouse_x === null || mouse_y === null) {
+        return
+    }
+
+    const boundingRect = canvas.getBoundingClientRect();
+
+    const scaleX = canvas.width / boundingRect.width;
+    const scaleY = canvas.height / boundingRect.height;
+
+    const canvasLeft = (mouse_x - boundingRect.left) * scaleX;
+    const canvasTop = (mouse_y - boundingRect.top) * scaleY;
+
+    const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), height - 1);
+    const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), width - 1);
+
+    agent_info_pre.textContent = model.inspect_agent(row, col);
 }
 
 const frame = () => {
