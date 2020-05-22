@@ -7,6 +7,7 @@ use std::f32;
 use js_sys::Math;
 
 use wasm_bindgen::prelude::*;
+use js_sys::Math::round;
 
 extern crate web_sys;
 
@@ -46,9 +47,9 @@ pub struct Agent {
 impl Agent {
     pub fn new() -> Agent {
         Agent {
-            attention: Math::random() as f32,
+            attention: 0.0,
             opinion: norm_random(0.0, 0.01),
-            information: norm_random(0.0, 0.2),
+            information: norm_random(0.1, 0.0),
         }
     }
 
@@ -65,11 +66,10 @@ impl Agent {
         self.attention = self.attention - 2.0 * d_a * self.attention / (n as f32)
     }
 
-    fn stoch_cusp(&mut self, n: usize, s_o: f32, a_min: f32) {
-        let dt = 0.01;
+    fn stoch_cusp(&mut self, d_t: f32, s_o: f32, a_min: f32) {
         self.opinion = self.opinion
-            - dt*(self.opinion.powi(3)-(self.attention + a_min) * self.opinion - self.information)
-            + norm_random(0f32, s_o);
+            - d_t*(self.opinion.powi(3)-(self.attention + a_min) * self.opinion - self.information)
+            + norm_random(0.0, s_o);
     }
 }
 
@@ -130,7 +130,7 @@ impl BlockNetwork {
         }) % size
     }
 
-    fn weighted_random_sample(&self) -> usize {
+    fn weighted_random_sample(&self) -> Option<usize> {
         let mut sorted_cells : Vec<_> = self.cells.iter().enumerate().collect();
         sorted_cells.sort_unstable_by(|(_, a), (_, b)|
             b.attention.partial_cmp(&a.attention).unwrap()
@@ -144,11 +144,16 @@ impl BlockNetwork {
 
         let mut r = Math::random() as f32;
         loop {
-            let agent = sorted_iter.next().unwrap();
-            r -= agent.1.attention;
-            if r < 0.0 {
-                break agent.0;
+            match sorted_iter.next() {
+                Some(agent) => {
+                    r -= agent.1.attention;
+                    if r < 0.0 {
+                        break Some(agent.0);
+                    }
+                },
+                None => break None,
             }
+
         }
     }
 }
@@ -198,28 +203,35 @@ impl Model {
         }
     }
 
+    pub fn add_activist(&mut self, row: usize, col: usize) {
+        let idx = row * self.network.width + col;
+        self.network.cells[idx] = Agent {
+            opinion: -0.5,
+            attention: 1.0,
+            information: -0.5,
+        }
+    }
+
     pub fn tick(&mut self) {
         log!("tick");
-        let agent_index = self.network.weighted_random_sample();
-        let mut agent = self.network.cells[agent_index];
-        let neigh_index = self.network.rand_neighbours(agent_index);
-        let mut neigh = self.network.cells[neigh_index];
+        if let Some(agent_index) = self.network.weighted_random_sample() {
+            let mut agent = self.network.cells[agent_index];
+            let neigh_index = self.network.rand_neighbours(agent_index);
+            let mut neigh = self.network.cells[neigh_index];
 
-        // log!("updating agent {} at index {},{}", agent, agent_index % self.network.width, agent_index / self.network.width);
-        // log!("with neighbour {} at index {},{}", neigh, neigh_index % self.network.width, neigh_index / self.network.width);
+            agent.update_info(&self.network.cells[neigh_index], self.persuasion, self.r_min);
+            neigh.update_info(&self.network.cells[agent_index], self.persuasion, self.r_min);
 
-        agent.update_info(&self.network.cells[neigh_index], self.persuasion, self.r_min);
-        neigh.update_info(&self.network.cells[agent_index], self.persuasion, self.r_min);
+            agent.update_attention(self.d_a, self.a_star);
+            neigh.update_attention(self.d_a, self.a_star);
 
-        agent.update_attention(self.d_a, self.a_star);
-        neigh.update_attention(self.d_a, self.a_star);
-
-        self.network.cells[agent_index] = agent;
-        self.network.cells[neigh_index] = neigh;
+            self.network.cells[agent_index] = agent;
+            self.network.cells[neigh_index] = neigh;
+        }
 
         self.network.cells = self.network.cells.iter().map(|a| {
             let mut a_new = a.clone();
-            a_new.stoch_cusp(self.n, self.s_o, self.a_min);
+            a_new.stoch_cusp(self.d_t, self.s_o, self.a_min);
             a_new.decay_attention(self.d_a, self.n);
             a_new
         }).collect();

@@ -4,12 +4,12 @@ var colormap = require('colormap');
 
 init();
 
-const SIZE = 50;
+const SIZE = 200;
 const MIN_O = -1.5;
 const MAX_O = 1.5;
 const NSHADES = 100;
 
-const CELL_SIZE = 20; // px
+const CELL_SIZE = 5; // px
 const GRID_COLOR = "#CCCCCC";
 let colors = colormap({
     colormap: 'picnic',
@@ -18,7 +18,7 @@ let colors = colormap({
     alpha: 1
 })
 
-const model = Model.new(SIZE, 0, 0.2, 1, 0.5, 0);
+const model = Model.new(SIZE, 0, 0.2, 2, 0.1, 0);
 const width = SIZE;
 const height = SIZE;
 
@@ -26,6 +26,7 @@ let pause = true;
 
 const tick_but = document.getElementById("tick-but");
 const pp_but = document.getElementById("pp-but");
+const act_but = document.getElementById("act-but");
 
 const canvas = document.getElementById("canvas");
 canvas.height = (CELL_SIZE + 1) * height + 1;
@@ -33,12 +34,33 @@ canvas.width = (CELL_SIZE + 1) * width + 1;
 
 const ctx = canvas.getContext('2d');
 
-tick_but.onclick = function() {
+canvas.addEventListener("click", event => {
+    const boundingRect = canvas.getBoundingClientRect();
+
+    const scaleX = canvas.width / boundingRect.width;
+    const scaleY = canvas.height / boundingRect.height;
+
+    const canvasLeft = (event.clientX - boundingRect.left) * scaleX;
+    const canvasTop = (event.clientY - boundingRect.top) * scaleY;
+
+    const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), height - 1);
+    const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), width - 1);
+
+    model.add_activist(row, col);
+
+    drawGrid();
+    drawCells();
+});
+
+tick_but.onclick = () => {
     frame();
 }
 
-pp_but.onclick = function () {
+pp_but.onclick = () => {
     pause = !pause;
+    if (!pause) {
+        requestAnimationFrame(play);
+    }
 }
 
 const drawGrid = () => {
@@ -88,18 +110,23 @@ const drawCells = () => {
     ctx.stroke();
 };
 
+const draw = () => {
+    drawGrid();
+    drawCells();
+}
+
 const frame = () => {
     model.tick();
 
-    drawGrid();
-    drawCells();
+    draw();
 }
 
 const play = () => {
     if (!pause) {
         frame();
+        requestAnimationFrame(play);
     }
-    requestAnimationFrame(play)
 }
 
+draw();
 requestAnimationFrame(play);
