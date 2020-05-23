@@ -166,12 +166,12 @@ pub struct Model {
 
 #[wasm_bindgen]
 impl Model {
-    pub fn new(l: usize, s_i: f32, d_a: f32, persuasion: f32, r_min: f32, t_o: f32) -> Model {
+    pub fn new(l: usize, a_star: f32, s_i: f32, d_a: f32, persuasion: f32, r_min: f32, t_o: f32) -> Model {
         Model {
             n: l*l,
             d_t: 0.01,
             a_min: -0.5,
-            a_star: 1.0,
+            a_star,
             s_o: 0.01,
             s_i,
             d_a,
@@ -223,7 +223,6 @@ impl Model {
         }).collect();
 
         self.last_updated_count = count;
-        log!("count: {}", count);
     }
 
     pub fn cell_ptr(&self) -> *const Agent {
@@ -244,6 +243,10 @@ impl Model {
 
     pub fn set_r_min(&mut self, r_min: f32) {
         self.r_min = r_min;
+    }
+
+    pub fn set_a_star(&mut self, a_star: f32) {
+        self.a_star = a_star;
     }
 
     pub fn set_persuasion(&mut self, persuasion: f32) {

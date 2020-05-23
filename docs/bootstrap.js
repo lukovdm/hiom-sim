@@ -55,12 +55,6 @@
 /******/ 		"../pkg/hiom_sim_bg.wasm": function() {
 /******/ 			return {
 /******/ 				"./hiom_sim_bg.js": {
-/******/ 					"__wbindgen_string_new": function(p0i32,p1i32) {
-/******/ 						return installedModules["../pkg/hiom_sim_bg.js"].exports["__wbindgen_string_new"](p0i32,p1i32);
-/******/ 					},
-/******/ 					"__wbindgen_object_drop_ref": function(p0i32) {
-/******/ 						return installedModules["../pkg/hiom_sim_bg.js"].exports["__wbindgen_object_drop_ref"](p0i32);
-/******/ 					},
 /******/ 					"__wbg_new_59cb74e423758ede": function() {
 /******/ 						return installedModules["../pkg/hiom_sim_bg.js"].exports["__wbg_new_59cb74e423758ede"]();
 /******/ 					},
@@ -70,8 +64,8 @@
 /******/ 					"__wbg_error_4bb6c2a97407129a": function(p0i32,p1i32) {
 /******/ 						return installedModules["../pkg/hiom_sim_bg.js"].exports["__wbg_error_4bb6c2a97407129a"](p0i32,p1i32);
 /******/ 					},
-/******/ 					"__wbg_log_eb1108411ecc4a7f": function(p0i32) {
-/******/ 						return installedModules["../pkg/hiom_sim_bg.js"].exports["__wbg_log_eb1108411ecc4a7f"](p0i32);
+/******/ 					"__wbindgen_object_drop_ref": function(p0i32) {
+/******/ 						return installedModules["../pkg/hiom_sim_bg.js"].exports["__wbindgen_object_drop_ref"](p0i32);
 /******/ 					},
 /******/ 					"__wbg_random_39c02e3d0f8a020f": function() {
 /******/ 						return installedModules["../pkg/hiom_sim_bg.js"].exports["__wbg_random_39c02e3d0f8a020f"]();
@@ -180,7 +174,7 @@
 /******/ 				promises.push(installedWasmModuleData);
 /******/ 			else {
 /******/ 				var importObject = wasmImportObjects[wasmModuleId]();
-/******/ 				var req = fetch(__webpack_require__.p + "" + {"../pkg/hiom_sim_bg.wasm":"2cd93ffcee30563dea14"}[wasmModuleId] + ".module.wasm");
+/******/ 				var req = fetch(__webpack_require__.p + "" + {"../pkg/hiom_sim_bg.wasm":"85cb16a0298476e08fb8"}[wasmModuleId] + ".module.wasm");
 /******/ 				var promise;
 /******/ 				if(importObject instanceof Promise && typeof WebAssembly.compileStreaming === 'function') {
 /******/ 					promise = Promise.all([WebAssembly.compileStreaming(req), importObject]).then(function(items) {

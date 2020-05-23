@@ -27,10 +27,11 @@ const reset_but = document.getElementById("reset-but");
 const agent_info_pre = document.getElementById("agent-info");
 const update_info_pre = document.getElementById("update-info");
 const d_a_slider = document.getElementById("d_a");
+const a_star_slider = document.getElementById("a_star");
 const r_min_slider = document.getElementById("r_min");
 const persuasion_slider = document.getElementById("persuasion");
 
-let model = Model.new(SIZE, S_I, d_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
+let model = Model.new(SIZE, a_star_slider.value, S_I, d_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
 const width = SIZE;
 const height = SIZE;
 
@@ -83,7 +84,7 @@ pp_but.onclick = () => {
 }
 
 reset_but.onclick = () => {
-    model = Model.new(SIZE, S_I, d_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
+    model = Model.new(SIZE, a_star_slider.value, S_I, d_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
     draw();
 }
 
@@ -95,6 +96,11 @@ r_min_slider.oninput = () => {
 d_a_slider.oninput = () => {
     model.set_d_a(d_a_slider.value);
     document.getElementById("d_a_label").textContent = "d_a: " + d_a_slider.value;
+}
+
+a_star_slider.oninput = () => {
+    model.set_a_star(a_star_slider.value);
+    document.getElementById("a_star_label").textContent = "a_star: " + a_star_slider.value;
 }
 
 persuasion_slider.oninput = () => {
