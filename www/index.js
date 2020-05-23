@@ -8,12 +8,15 @@ init();
 const SIZE = 200;
 const MIN_O = -1.5;
 const MAX_O = 1.5;
+const MIN_I = -2.0;
+const MAX_I = 2.0;
+const MIN_A = -1.0;
+const MAX_A = 1.0;
 const NSHADES = 100;
 const S_I = 0;
 const T_O = 0;
 
 const CELL_SIZE = 5; // px
-const GRID_COLOR = "#CCCCCC";
 let colors = colormap({
     colormap: 'picnic',
     nshades: NSHADES,
@@ -24,12 +27,18 @@ let colors = colormap({
 const tick_but = document.getElementById("tick-but");
 const pp_but = document.getElementById("pp-but");
 const reset_but = document.getElementById("reset-but");
+
 const agent_info_pre = document.getElementById("agent-info");
 const update_info_pre = document.getElementById("update-info");
+
 const d_a_slider = document.getElementById("d_a");
 const a_star_slider = document.getElementById("a_star");
 const r_min_slider = document.getElementById("r_min");
 const persuasion_slider = document.getElementById("persuasion");
+
+const opinion_radio = document.getElementById("opinion");
+const information_radio = document.getElementById("information");
+const attention_radio = document.getElementById("attention");
 
 let model = Model.new(SIZE, a_star_slider.value, S_I, d_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
 const width = SIZE;
@@ -40,8 +49,8 @@ let mouse_x = null;
 let mouse_y = null;
 
 const canvas = document.getElementById("canvas");
-canvas.height = (CELL_SIZE + 1) * height + 1;
-canvas.width = (CELL_SIZE + 1) * width + 1;
+canvas.height = (CELL_SIZE) * height;
+canvas.width = (CELL_SIZE) * width;
 
 const ctx = canvas.getContext('2d');
 
@@ -108,9 +117,19 @@ persuasion_slider.oninput = () => {
     document.getElementById("persuasion_label").textContent = "persuasion: " + persuasion_slider.value;
 }
 
+opinion_radio.onchange = () => {draw();}
+information_radio.onchange = () => {draw();}
+attention_radio.onchange = () => {draw();}
+
+
 const getIndex = (row, column) => {
     return (row * width + column) * 3;
 };
+
+const draw = () => {
+    drawCells();
+    update_info();
+}
 
 const drawCells = () => {
     const networkPtr = model.cell_ptr();
@@ -122,13 +141,30 @@ const drawCells = () => {
         for (let col = 0; col < width; col++) {
             const idx = getIndex(row, col);
 
-            let op = (Math.min(Math.max(agents[idx], MIN_O), MAX_O) + 1.5) / 3;
+            let offset = null;
+            let MIN = null;
+            let MAX = null;
+            if (attention_radio.checked) {
+                offset = 1;
+                MIN = MIN_A;
+                MAX = MAX_A;
+            } else if (information_radio.checked) {
+                offset = 2;
+                MIN = MIN_I;
+                MAX = MAX_I;
+            } else {
+                offset = 0;
+                MIN = MIN_O;
+                MAX = MAX_O;
+            }
+
+            let op = (Math.min(Math.max(agents[idx + offset], MIN), MAX) - MIN) / (MAX - MIN);
 
             ctx.fillStyle = colors[NSHADES - 1 - Math.floor(op * NSHADES)];
 
             ctx.fillRect(
-                col * (CELL_SIZE + 1) + 1,
-                row * (CELL_SIZE + 1) + 1,
+                col * (CELL_SIZE),
+                row * (CELL_SIZE),
                 CELL_SIZE,
                 CELL_SIZE
             );
@@ -137,12 +173,6 @@ const drawCells = () => {
 
     ctx.stroke();
 };
-
-const draw = () => {
-    // drawGrid();
-    drawCells();
-    update_info();
-}
 
 const update_info = () => {
     update_info_pre.textContent = "agents updated: " + model.count();

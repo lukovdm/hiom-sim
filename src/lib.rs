@@ -37,6 +37,9 @@ fn norm_random(mean: f32, std: f32) -> f32 {
 
 // Fisher and Yates shuffle
 fn shuffle(ar: &mut[usize]) {
+    if ar.len() < 2 {
+        return;
+    }
     for i in 0..ar.len() - 2 {
         let j = (Math::random() * (ar.len() - i) as f64).floor() as usize + i;
         let x = ar[i];
@@ -116,23 +119,25 @@ impl BlockNetwork {
     fn rand_neighbours(&self, i: usize) -> usize {
         let size = self.width * self.height;
         let r = Math::random();
-        (i + if r < (1f64/8f64) {
-            size - self.width - 1
-        } else if r < (2f64/8f64) {
-            size - self.width
-        } else if r < (3f64/8f64) {
-            size - self.width + 1
-        } else if r < (4f64/8f64) {
-            size - 1
-        } else if r < (5f64/8f64) {
-            size + 1
-        } else if r < (6f64/8f64) {
-            size + self.width - 1
-        } else if r < (7f64/8f64) {
-            size + self.width
-        } else {
-            size + self.width + 1
-        }) % size
+        (i +
+            if r < (1f64/8f64) {
+                size - self.width - 1
+            } else if r < (2f64/8f64) {
+                size - self.width
+            } else if r < (3f64/8f64) {
+                size - self.width + 1
+            } else if r < (4f64/8f64) {
+                size - 1
+            } else if r < (5f64/8f64) {
+                size + 1
+            } else if r < (6f64/8f64) {
+                size + self.width - 1
+            } else if r < (7f64/8f64) {
+                size + self.width
+            } else {
+                size + self.width + 1
+            }
+        ) % size
     }
 }
 
@@ -193,13 +198,17 @@ impl Model {
     }
 
     pub fn tick(&mut self) {
-        let mut shuffeld_range: Vec<usize> = (0..self.n).collect();
-        shuffle(&mut shuffeld_range);
         let mut count = 0;
-        for idx in shuffeld_range {
-            let mut agent = self.network.cells[idx];
+
+        let mut shuffeld_range: Vec<usize> = (0..self.n).filter(|i| {
             let r = Math::random() as f32;
-            if agent.attention > r {
+            self.network.cells[*i].attention > r
+        }).collect();
+
+        if shuffeld_range.len() > 0 {
+            shuffle(&mut shuffeld_range);
+            for idx in shuffeld_range {
+                let mut agent = self.network.cells[idx];
                 count += 1;
                 let neigh_index = self.network.rand_neighbours(idx);
                 let mut neigh = self.network.cells[neigh_index];
