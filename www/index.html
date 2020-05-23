@@ -1,8 +1,9 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Hello wasm-pack!</title>
+    <title>HIOM simulation</title>
 
     <style>
       #drawing {
@@ -24,6 +25,28 @@
         flex-direction: column;
         align-items: start;
         justify-content: left;
+        padding: 10px 20px;
+        background-color: #f1f1f17a;
+        border-radius: 15px;
+      }
+      #info {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        justify-content: left;
+        padding: 10px 20px;
+        background-color: #f1f1f17a;
+        border-radius: 15px;
+      }
+      .param_slider {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        justify-content: left;
+        padding: 7px 0px;
       }
     </style>
   </head>
@@ -33,36 +56,70 @@
     </div>
     <div id="ui">
       <div>
-        <button id="tick-but">tick</button>
-        <button id="thou-tick-but">1000 tick</button>
-        <button id="pp-but">play</button>
+        <p><b>Controls</b></p>
+        <button id="tick-but">1 iteration</button>
+        <button id="thou-tick-but">100 iterations</button>
+        <button id="pp-but">Play</button>
         <button id="reset-but">Reset</button>
+        <p><em>Click in field to insert activist</em></p>
       </div>
-      <p>Display value:</p>
+      <p><b>Display value:</b></p>
       <div>
         <input type="radio" id="opinion" name="display" value="opinion" checked>
         <label for="opinion">Opinion</label>
       </div>
       <div>
         <input type="radio" id="information" name="display" value="information">
-        <label for="information">information</label>
+        <label for="information">Information</label>
       </div>
       <div>
         <input type="radio" id="attention" name="display" value="attention">
-        <label for="attention">attention</label>
+        <label for="attention">Attention</label>
       </div>
-      <p>Click to insert activist</p>
-      <input id="a_star" type="range" min="0" max="1" value="1" step="0.01">
-      <label id="a_star_label" for="a_star">a_star: 1.0</label>
-      <input id="d_a" type="range" min="0" max="0.5" value="0.1" step="0.01">
-      <label id="d_a_label" for="d_a">d_a: 0.1</label>
-      <input id="r_min" type="range" min="0" max="1" value="0" step="0.01">
-      <label id="r_min_label" for="r_min">r_min: 0</label>
-      <input id="persuasion" type="range" min="0" max="10" value="3" step="0.1">
-      <label id="persuasion_label" for="persuasion">persuasion: 1</label>
-      <p>(o, a, i)</p>
-      <pre id="agent-info"></pre>
-      <pre id="update-info"></pre>
+      <p><b>Set parameters</b></p>
+      <div class="param_slider">
+        <input id="size" type="range" min="10" max="400" value="200" step="5">
+        <label id="size_label" for="size">Grid length(x width): 200</label>
+      </div>
+
+      <div class="param_slider">
+        <input id="d_a" type="range" min="0" max="0.5" value="0.1" step="0.01">
+        <label id="d_a_label" for="d_a">Attention increase for interactions: 0.05</label>
+      </div>
+      <div class="param_slider">
+        <input id="decay_a" type="range" min="0" max="1.0" value="0.9" step="0.01">
+        <label id="decay_a_label" for="decay_a">Decay attention: 0.99</label>
+      </div>
+      <div class="param_slider">
+        <input id="decay_i" type="range" min="0" max="1" value="1.0" step="0.01">
+        <label id="decay_i_label" for="decay_i">Decay information: 1.0</label>
+      </div>
+      <div class="param_slider">
+        <input id="s_i" type="range" min="0" max="0.05" value="0" step="0.001">
+        <label id="s_i_label" for="s_i">Sd noise information: 0.0</label>
+      </div>
+      <div class="param_slider">
+        <input id="r_min" type="range" min="0" max="1" value="0" step="0.01">
+        <label id="r_min_label" for="r_min">Minimal resistance (r_min): 0</label>
+      </div>
+      <div class="param_slider">
+        <input id="persuasion" type="range" min="0" max="10" value="4" step="0.1">
+        <label id="persuasion_label" for="persuasion">Persuasion: 4</label>
+      </div>
+      <p>
+        <b>Mouse move over agents to see their</b> <br>
+        Opinion, attention, information
+      </p>
+      <p id="agent-info"></p>
+      <p id="update-info"></p>
+    </div>
+    <div id="info">
+      <p><b>
+        Simulation "Opposition to activism: the case of black Pete"<br>
+        from <a href="https://doi.org/10.1093/comnet/cnaa010"> "The polarization within and across individuals:<br>
+        the hierarchical Ising opinion model" </a>
+      </b></p>
+      <img src="figure7.png" alt="cusp" style="width: 300px; height: 300px" />
     </div>
     <script src="./bootstrap.js"></script>
   </body>

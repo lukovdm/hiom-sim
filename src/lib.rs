@@ -70,13 +70,22 @@ impl Agent {
         self.information = r * self.information + (1f32 - r) * other.information;
     }
 
-    fn update_attention(&mut self, d_a: f32, a_s: f32) {
-        self.attention = self.attention + d_a * (2.0 * a_s - self.attention);
+    fn update_attention(&mut self, d_a: f32) {
+       // self.attention = self.attention + d_a * (2.0 * a_s - self.attention);
+       self.attention = 1f32.min(self.attention + d_a);
     }
 
-    fn decay_attention(&mut self, d_a: f32, n: usize, count: usize) {
-        self.attention = self.attention - 2.0 * d_a * (count as f32) * self.attention / (n as f32)
+    fn decay_attention(&mut self, decay_a: f32) {
+     //   self.attention = self.attention - 2.0 * d_a * (count as f32) * self.attention / (n as f32)
+        self.attention = decay_a * self.attention;
     }
+
+    fn decay_information(&mut self, decay_i: f32, s_i : f32) {
+        //   self.attention = self.attention - 2.0 * d_a * (count as f32) * self.attention / (n as f32)
+        self.information += norm_random(0.0, s_i);
+        self.information = decay_i * self.information;
+    }
+
 
     fn stoch_cusp(&mut self, d_t: f32, s_o: f32, a_min: f32) {
         self.opinion = self.opinion
@@ -158,10 +167,11 @@ pub struct Model {
     n: usize,
     d_t: f32,
     a_min: f32,
-    a_star: f32,
+    decay_i: f32,
     s_o: f32,
     s_i: f32,
     d_a: f32,
+    decay_a: f32,
     persuasion: f32,
     r_min: f32,
     t_o: f32,
@@ -171,15 +181,16 @@ pub struct Model {
 
 #[wasm_bindgen]
 impl Model {
-    pub fn new(l: usize, a_star: f32, s_i: f32, d_a: f32, persuasion: f32, r_min: f32, t_o: f32) -> Model {
+    pub fn new(l: usize, decay_i: f32, s_i: f32, d_a: f32, decay_a: f32, persuasion: f32, r_min: f32, t_o: f32) -> Model {
         Model {
             n: l*l,
             d_t: 0.01,
             a_min: -0.5,
-            a_star,
+            decay_i,
             s_o: 0.01,
             s_i,
             d_a,
+            decay_a,
             persuasion,
             r_min,
             t_o,
@@ -216,8 +227,8 @@ impl Model {
                 agent.update_info(&self.network.cells[neigh_index], self.persuasion, self.r_min);
                 neigh.update_info(&self.network.cells[idx], self.persuasion, self.r_min);
 
-                agent.update_attention(self.d_a, self.a_star);
-                neigh.update_attention(self.d_a, self.a_star);
+                agent.update_attention(self.d_a);
+                neigh.update_attention(self.d_a);
 
                 self.network.cells[idx] = agent;
                 self.network.cells[neigh_index] = neigh;
@@ -226,8 +237,9 @@ impl Model {
 
         self.network.cells = self.network.cells.iter().map(|a| {
             let mut a_new = a.clone();
+            a_new.decay_attention(self.decay_a);
+            a_new.decay_information(self.decay_i, self.s_i);
             a_new.stoch_cusp(self.d_t, self.s_o, self.a_min);
-            a_new.decay_attention(self.d_a, self.n, count);
             a_new
         }).collect();
 
@@ -256,12 +268,20 @@ impl Model {
         self.d_a = d_a;
     }
 
+    pub fn set_s_i(&mut self, s_i: f32) {
+        self.s_i = s_i;
+    }
+
+    pub fn set_decay_a(&mut self, decay_a: f32) {
+        self.decay_a = decay_a;
+    }
+
     pub fn set_r_min(&mut self, r_min: f32) {
         self.r_min = r_min;
     }
 
-    pub fn set_a_star(&mut self, a_star: f32) {
-        self.a_star = a_star;
+    pub fn set_decay_i(&mut self, decay_i: f32) {
+        self.decay_i = decay_i;
     }
 
     pub fn set_persuasion(&mut self, persuasion: f32) {

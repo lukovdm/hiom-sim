@@ -9,3 +9,6 @@ wasm-pack.log
 
 www/node_modules
 www/dist
+
+.DS_Store
+www/.DS_Store
