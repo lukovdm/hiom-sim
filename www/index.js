@@ -27,6 +27,7 @@ let colors = colormap({
 const tick_but = document.getElementById("tick-but");
 const pp_but = document.getElementById("pp-but");
 const reset_but = document.getElementById("reset-but");
+const thou_but = document.getElementById("thou-tick-but");
 
 const agent_info_pre = document.getElementById("agent-info");
 const update_info_pre = document.getElementById("update-info");
@@ -72,6 +73,12 @@ canvas.addEventListener("mousemove", event => {
 
 tick_but.onclick = () => {
     frame();
+}
+
+thou_but.onclick = () => {
+    model.x_tick(1000);
+
+    draw();
 }
 
 pp_but.onclick = () => {

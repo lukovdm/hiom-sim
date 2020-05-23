@@ -234,6 +234,12 @@ impl Model {
         self.last_updated_count = count;
     }
 
+    pub fn x_tick(&mut self, ticks: u32) {
+        for _ in 0..ticks {
+            self.tick();
+        }
+    }
+
     pub fn cell_ptr(&self) -> *const Agent {
         self.network.cells.as_ptr()
     }
