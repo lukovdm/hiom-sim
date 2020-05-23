@@ -8,8 +8,8 @@ init();
 const SIZE = 200;
 const MIN_O = -1.5;
 const MAX_O = 1.5;
-const MIN_I = -2.0;
-const MAX_I = 2.0;
+const MIN_I = -.5;
+const MAX_I = .5;
 const MIN_A = -1.0;
 const MAX_A = 1.0;
 const NSHADES = 100;
@@ -55,16 +55,8 @@ canvas.width = (CELL_SIZE) * width;
 const ctx = canvas.getContext('2d');
 
 canvas.addEventListener("click", event => {
-    const boundingRect = canvas.getBoundingClientRect();
-
-    const scaleX = canvas.width / boundingRect.width;
-    const scaleY = canvas.height / boundingRect.height;
-
-    const canvasLeft = (event.clientX - boundingRect.left) * scaleX;
-    const canvasTop = (event.clientY - boundingRect.top) * scaleY;
-
-    const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), height - 1);
-    const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), width - 1);
+    const row = Math.min(Math.floor(event.offsetY / CELL_SIZE), height);
+    const col = Math.min(Math.floor(event.offsetX / CELL_SIZE), width);
 
     model.add_activist(row, col);
 
@@ -72,8 +64,8 @@ canvas.addEventListener("click", event => {
 });
 
 canvas.addEventListener("mousemove", event => {
-    mouse_x = event.clientX;
-    mouse_y = event.clientY;
+    mouse_x = Math.min(Math.floor(event.offsetX / (CELL_SIZE)), height);
+    mouse_y = Math.min(Math.floor(event.offsetY / (CELL_SIZE)), width);
 
     update_info();
 });
@@ -137,30 +129,30 @@ const drawCells = () => {
 
     ctx.beginPath();
 
+    let offset;
+    let MIN;
+    let MAX;
+    if (attention_radio.checked) {
+        offset = 1;
+        MIN = MIN_A;
+        MAX = MAX_A;
+    } else if (information_radio.checked) {
+        offset = 2;
+        MIN = MIN_I;
+        MAX = MAX_I;
+    } else {
+        offset = 0;
+        MIN = MIN_O;
+        MAX = MAX_O;
+    }
+
     for (let row = 0; row < height; row++) {
         for (let col = 0; col < width; col++) {
             const idx = getIndex(row, col);
 
-            let offset = null;
-            let MIN = null;
-            let MAX = null;
-            if (attention_radio.checked) {
-                offset = 1;
-                MIN = MIN_A;
-                MAX = MAX_A;
-            } else if (information_radio.checked) {
-                offset = 2;
-                MIN = MIN_I;
-                MAX = MAX_I;
-            } else {
-                offset = 0;
-                MIN = MIN_O;
-                MAX = MAX_O;
-            }
+            let val = (Math.min(Math.max(agents[idx + offset], MIN), MAX) - MIN) / (MAX - MIN);
 
-            let op = (Math.min(Math.max(agents[idx + offset], MIN), MAX) - MIN) / (MAX - MIN);
-
-            ctx.fillStyle = colors[NSHADES - 1 - Math.floor(op * NSHADES)];
+            ctx.fillStyle = colors[Math.floor(val * (NSHADES - 1))];
 
             ctx.fillRect(
                 col * (CELL_SIZE),
@@ -181,18 +173,7 @@ const update_info = () => {
         return
     }
 
-    const boundingRect = canvas.getBoundingClientRect();
-
-    const scaleX = canvas.width / boundingRect.width;
-    const scaleY = canvas.height / boundingRect.height;
-
-    const canvasLeft = (mouse_x - boundingRect.left) * scaleX;
-    const canvasTop = (mouse_y - boundingRect.top) * scaleY;
-
-    const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), height - 1);
-    const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), width - 1);
-
-    agent_info_pre.textContent = model.inspect_agent(row, col);
+    agent_info_pre.textContent = model.inspect_agent(mouse_y, mouse_x);
 }
 
 const frame = () => {

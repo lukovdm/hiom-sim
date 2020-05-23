@@ -61,7 +61,7 @@ impl Agent {
         Agent {
             attention: 0.0,
             opinion: norm_random(0.0, 0.01),
-            information: norm_random(0.1, 0.0),
+            information: norm_random(-0.1, 0.0),
         }
     }
 
@@ -191,9 +191,9 @@ impl Model {
     pub fn add_activist(&mut self, row: usize, col: usize) {
         let idx = row * self.network.width + col;
         self.network.cells[idx] = Agent {
-            opinion: -0.5,
+            opinion: 0.5,
             attention: 1.0,
-            information: -0.5,
+            information: 0.5,
         }
     }
 
