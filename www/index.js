@@ -33,6 +33,7 @@ const update_info_pre = document.getElementById("update-info");
 
 // Sliders
 const d_a_slider = document.getElementById("d_a");
+const s_o_slider = document.getElementById("s_o");
 const s_i_slider = document.getElementById("s_i");
 const decay_a_slider = document.getElementById("decay_a");
 const decay_i_slider = document.getElementById("decay_i");
@@ -62,7 +63,7 @@ const calculate_cell_size = () => {
 }
 
 let cell_size = calculate_cell_size();
-let model = Model.new(size, decay_i_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
+let model = Model.new(size, decay_i_slider.value, s_o_slider.value,s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
 
 const getIndex = (row, column) => {
     return (row * size + column) * 3;
@@ -142,7 +143,7 @@ const play = () => {
 const reset = () => {
     size = new_size;
     cell_size = calculate_cell_size();
-    model = Model.new(size, decay_i_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
+    model = Model.new(size, decay_i_slider.value, s_o_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     draw();
 }
@@ -200,6 +201,11 @@ r_min_slider.oninput = () => {
 d_a_slider.oninput = () => {
     model.set_d_a(d_a_slider.value);
     document.getElementById("d_a_label").textContent = "Attention increase for interactions: " + d_a_slider.value;
+}
+
+s_o_slider.oninput = () => {
+    model.set_s_o(s_o_slider.value);
+    document.getElementById("s_o_label").textContent = "Sd noise opinion: " + s_o_slider.value;
 }
 
 s_i_slider.oninput = () => {

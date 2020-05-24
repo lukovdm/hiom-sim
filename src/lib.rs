@@ -1,3 +1,4 @@
+// L&H van der maas
 mod utils;
 
 use std::fmt;
@@ -181,13 +182,13 @@ pub struct Model {
 
 #[wasm_bindgen]
 impl Model {
-    pub fn new(l: usize, decay_i: f32, s_i: f32, d_a: f32, decay_a: f32, persuasion: f32, r_min: f32, t_o: f32) -> Model {
+    pub fn new(l: usize, decay_i: f32, s_o: f32, s_i: f32, d_a: f32, decay_a: f32, persuasion: f32, r_min: f32, t_o: f32) -> Model {
         Model {
             n: l*l,
             d_t: 0.01,
             a_min: -0.5,
             decay_i,
-            s_o: 0.01,
+            s_o,
             s_i,
             d_a,
             decay_a,
@@ -266,6 +267,10 @@ impl Model {
 
     pub fn set_d_a(&mut self, d_a: f32) {
         self.d_a = d_a;
+    }
+
+    pub fn set_s_o(&mut self, s_o: f32) {
+        self.s_o = s_o;
     }
 
     pub fn set_s_i(&mut self, s_i: f32) {
