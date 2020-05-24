@@ -5,7 +5,6 @@ var colormap = require('colormap');
 
 init();
 
-const SIZE = 200;
 const MIN_O = -.5;
 const MAX_O = .5;
 const MIN_I = -.5;
@@ -56,98 +55,14 @@ let pause = true;
 let mouse_x;
 let mouse_y;
 let size = size_slider.value;
+let new_size = size_slider.value;
 
 const calculate_cell_size = () => {
     return canvas.width / size;
 }
 
 let cell_size = calculate_cell_size();
-
 let model = Model.new(size, decay_i_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
-
-size_slider.oninput = () => {
-    document.getElementById("size_label").textContent = "length: " + size_slider.value;
-    size = size_slider.value;
-    cell_size = calculate_cell_size();
-    console.log(calculate_cell_size());
-}
-
-canvas.addEventListener("click", event => {
-    const row = Math.min(Math.floor(event.offsetY / cell_size), size);
-    const col = Math.min(Math.floor(event.offsetX / cell_size), size);
-
-    model.add_activist(row, col);
-
-    draw();
-});
-
-canvas.addEventListener("mousemove", event => {
-    mouse_x = Math.min(Math.floor(event.offsetX / (cell_size)), size);
-    mouse_y = Math.min(Math.floor(event.offsetY / (cell_size)), size);
-
-    update_info();
-});
-
-tick_but.onclick = () => {
-    frame();
-}
-
-thou_but.onclick = () => {
-    model.x_tick(100);
-
-    draw();
-}
-
-pp_but.onclick = () => {
-    pause = !pause;
-    if (!pause) {
-        requestAnimationFrame(play);
-        pp_but.innerText = "Pause";
-    } else {
-        pp_but.innerText = "Play";
-    }
-}
-
-reset_but.onclick = () => {
-    model = Model.new(size, decay_i_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    draw();
-}
-
-r_min_slider.oninput = () => {
-    model.set_r_min(r_min_slider.value);
-    document.getElementById("r_min_label").textContent = "Minimal resistance (r_min): " + r_min_slider.value;
-}
-
-d_a_slider.oninput = () => {
-    model.set_d_a(d_a_slider.value);
-    document.getElementById("d_a_label").textContent = "Attention increase for interactions: " + d_a_slider.value;
-}
-
-s_i_slider.oninput = () => {
-    model.set_s_i(s_i_slider.value);
-    document.getElementById("s_i_label").textContent = "Sd noise information: " + s_i_slider.value;
-}
-
-decay_a_slider.oninput = () => {
-    model.set_decay_a(decay_a_slider.value);
-    document.getElementById("decay_a_label").textContent = "Decay attention: " + decay_a_slider.value;
-}
-
-decay_i_slider.oninput = () => {
-    model.set_decay_i(decay_i_slider.value);
-    document.getElementById("decay_i_label").textContent = "Decay information: " + decay_i_slider.value;
-}
-
-persuasion_slider.oninput = () => {
-    model.set_persuasion(persuasion_slider.value);
-    document.getElementById("persuasion_label").textContent = "Persuasion: " + persuasion_slider.value;
-}
-
-opinion_radio.onchange = () => {draw();}
-information_radio.onchange = () => {draw();}
-attention_radio.onchange = () => {draw();}
-
 
 const getIndex = (row, column) => {
     return (row * size + column) * 3;
@@ -224,5 +139,91 @@ const play = () => {
     }
 }
 
-draw();
-requestAnimationFrame(play);
+const reset = () => {
+    size = new_size;
+    cell_size = calculate_cell_size();
+    model = Model.new(size, decay_i_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    draw();
+}
+
+size_slider.oninput = () => {
+    document.getElementById("size_label").textContent = "length: " + size_slider.value;
+    new_size = size_slider.value;
+}
+
+size_slider.onchange = () => {reset();};
+
+canvas.addEventListener("click", event => {
+    const row = Math.min(Math.floor(event.offsetY / cell_size), size);
+    const col = Math.min(Math.floor(event.offsetX / cell_size), size);
+
+    model.add_activist(row, col);
+
+    draw();
+});
+
+canvas.addEventListener("mousemove", event => {
+    mouse_x = Math.min(Math.floor(event.offsetX / (cell_size)), size);
+    mouse_y = Math.min(Math.floor(event.offsetY / (cell_size)), size);
+
+    update_info();
+});
+
+tick_but.onclick = () => {
+    frame();
+}
+
+thou_but.onclick = () => {
+    model.x_tick(100);
+
+    draw();
+}
+
+pp_but.onclick = () => {
+    pause = !pause;
+    if (!pause) {
+        requestAnimationFrame(play);
+        pp_but.innerText = "Pause";
+    } else {
+        pp_but.innerText = "Play";
+    }
+}
+
+reset_but.onclick = () => {reset();};
+
+r_min_slider.oninput = () => {
+    model.set_r_min(r_min_slider.value);
+    document.getElementById("r_min_label").textContent = "Minimal resistance (r_min): " + r_min_slider.value;
+}
+
+d_a_slider.oninput = () => {
+    model.set_d_a(d_a_slider.value);
+    document.getElementById("d_a_label").textContent = "Attention increase for interactions: " + d_a_slider.value;
+}
+
+s_i_slider.oninput = () => {
+    model.set_s_i(s_i_slider.value);
+    document.getElementById("s_i_label").textContent = "Sd noise information: " + s_i_slider.value;
+}
+
+decay_a_slider.oninput = () => {
+    model.set_decay_a(decay_a_slider.value);
+    document.getElementById("decay_a_label").textContent = "Decay attention: " + decay_a_slider.value;
+}
+
+decay_i_slider.oninput = () => {
+    model.set_decay_i(decay_i_slider.value);
+    document.getElementById("decay_i_label").textContent = "Decay information: " + decay_i_slider.value;
+}
+
+persuasion_slider.oninput = () => {
+    model.set_persuasion(persuasion_slider.value);
+    document.getElementById("persuasion_label").textContent = "Persuasion: " + persuasion_slider.value;
+}
+
+opinion_radio.onchange = () => {draw();}
+information_radio.onchange = () => {draw();}
+attention_radio.onchange = () => {draw();}
+
+reset();
