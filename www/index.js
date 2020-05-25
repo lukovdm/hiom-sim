@@ -40,6 +40,7 @@ const decay_i_slider = document.getElementById("decay_i");
 const r_min_slider = document.getElementById("r_min");
 const persuasion_slider = document.getElementById("persuasion");
 const size_slider = document.getElementById("size");
+const attention_init_slider = document.getElementById("attention_init");
 
 // Radio buttons
 const opinion_radio = document.getElementById("opinion");
@@ -56,6 +57,8 @@ let pause = true;
 let mouse_x;
 let mouse_y;
 let size = size_slider.value;
+let attention_init = attention_init_slider.value;
+
 let new_size = size_slider.value;
 
 const calculate_cell_size = () => {
@@ -143,7 +146,7 @@ const play = () => {
 const reset = () => {
     size = new_size;
     cell_size = calculate_cell_size();
-    model = Model.new(size, decay_i_slider.value, s_o_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
+    model = Model.new(size, decay_i_slider.value, s_o_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O,attention_init);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     draw();
 }
@@ -227,6 +230,12 @@ persuasion_slider.oninput = () => {
     model.set_persuasion(persuasion_slider.value);
     document.getElementById("persuasion_label").textContent = "Persuasion: " + persuasion_slider.value;
 }
+
+attention_init_slider.oninput = () => {
+    document.getElementById("attention_init_label").textContent = "Attention init: " + attention_init_slider.value;
+    attention_init= attention_init_slider.value;
+}
+attention_init_slider.onchange = () => {reset();};
 
 opinion_radio.onchange = () => {draw();}
 information_radio.onchange = () => {draw();}
