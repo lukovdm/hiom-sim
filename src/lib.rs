@@ -71,9 +71,9 @@ impl Agent {
         self.information = r * self.information + (1f32 - r) * other.information;
     }
 
-    fn update_attention(&mut self, d_a: f32) {
+    fn update_attention(&mut self, other: &Agent, d_a: f32) {
        // self.attention = self.attention + d_a * (2.0 * a_s - self.attention);
-       self.attention = 1f32.min(self.attention + d_a);
+       self.attention = 1f32.min(self.attention + d_a)// *(self.opinion - other.opinion).abs());
     }
 
     fn decay_attention(&mut self, decay_a: f32) {
@@ -228,8 +228,8 @@ impl Model {
                 agent.update_info(&self.network.cells[neigh_index], self.persuasion, self.r_min);
                 neigh.update_info(&self.network.cells[idx], self.persuasion, self.r_min);
 
-                agent.update_attention(self.d_a);
-                neigh.update_attention(self.d_a);
+                agent.update_attention(&self.network.cells[neigh_index],self.d_a);
+                neigh.update_attention(&self.network.cells[idx],self.d_a);
 
                 self.network.cells[idx] = agent;
                 self.network.cells[neigh_index] = neigh;
