@@ -42,6 +42,7 @@ const persuasion_slider = document.getElementById("persuasion");
 const size_slider = document.getElementById("size");
 const attention_init_slider = document.getElementById("attention_init");
 const information_init_slider = document.getElementById("information_init");
+const active_agents_slider = document.getElementById("active_agents");
 
 // Radio buttons
 const opinion_radio = document.getElementById("opinion");
@@ -68,7 +69,7 @@ const calculate_cell_size = () => {
 }
 
 let cell_size = calculate_cell_size();
-let model = Model.new(size, decay_i_slider.value, s_o_slider.value,s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O);
+let model = Model.new(size, decay_i_slider.value, s_o_slider.value,s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O,active_agents_slider.value);
 
 const getIndex = (row, column) => {
     return (row * size + column) * 3;
@@ -148,7 +149,7 @@ const play = () => {
 const reset = () => {
     size = new_size;
     cell_size = calculate_cell_size();
-    model = Model.new(size, decay_i_slider.value, s_o_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O,attention_init,information_init);
+    model = Model.new(size, decay_i_slider.value, s_o_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O,active_agents_slider.value,attention_init,information_init);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     draw();
 }
@@ -231,6 +232,11 @@ decay_i_slider.oninput = () => {
 persuasion_slider.oninput = () => {
     model.set_persuasion(persuasion_slider.value);
     document.getElementById("persuasion_label").textContent = "Persuasion: " + persuasion_slider.value;
+}
+
+active_agents_slider.oninput = () => {
+    model.set_active_agents(active_agents_slider.value);
+    document.getElementById("active_agents_label").textContent = "% Active agents: " + active_agents_slider.value;
 }
 
 attention_init_slider.oninput = () => {

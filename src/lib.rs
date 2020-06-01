@@ -93,11 +93,12 @@ impl Agent {
             - d_t*(self.opinion.powi(3)-(self.attention + a_min) * self.opinion - self.information)
             + norm_random(0.0, s_o);
     }
+
 }
 
 impl fmt::Display for Agent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({:.2}, {:.2}, {:.2})", self.opinion, self.attention, self.information)?;
+        write!(f, "Opinion: {:.2}\n Attention: {:.2}\n Information: {:.2}", self.opinion, self.attention, self.information)?;
         Ok(())
     }
 }
@@ -176,13 +177,14 @@ pub struct Model {
     persuasion: f32,
     r_min: f32,
     t_o: f32,
+    active_agents: f32,
     network: BlockNetwork,
     last_updated_count: usize,
 }
 
 #[wasm_bindgen]
 impl Model {
-    pub fn new(l: usize, decay_i: f32, s_o: f32, s_i: f32, d_a: f32, decay_a: f32, persuasion: f32, r_min: f32, t_o: f32, attention_init: f32, information_init: f32) -> Model {
+    pub fn new(l: usize, decay_i: f32, s_o: f32, s_i: f32, d_a: f32, decay_a: f32, persuasion: f32, r_min: f32, t_o: f32, active_agents: f32, attention_init: f32, information_init: f32) -> Model {
         Model {
             n: l*l,
             d_t: 0.01,
@@ -195,10 +197,18 @@ impl Model {
             persuasion,
             r_min,
             t_o,
+            active_agents,
             network: BlockNetwork::new(l, l, attention_init, information_init),
             last_updated_count: 0,
         }
     }
+    fn decay_update(&mut self, count: usize) {
+        let mut da =
+            (1.0 + self.active_agents - (count as f32 / self.n as f32)) * self.decay_a;
+        da = 1f32.min(da);
+        self.decay_a = 0.5f32.max(da);
+    }
+
 
     pub fn add_activist(&mut self, row: usize, col: usize) {
         let idx = row * self.network.width + col;
@@ -235,6 +245,8 @@ impl Model {
                 self.network.cells[neigh_index] = neigh;
             }
         }
+
+        self.decay_update(count);
 
         self.network.cells = self.network.cells.iter().map(|a| {
             let mut a_new = a.clone();
@@ -283,6 +295,10 @@ impl Model {
 
     pub fn set_r_min(&mut self, r_min: f32) {
         self.r_min = r_min;
+    }
+
+    pub fn set_active_agents(&mut self, active_agents: f32) {
+        self.active_agents = active_agents;
     }
 
     pub fn set_decay_i(&mut self, decay_i: f32) {
