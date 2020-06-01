@@ -100,8 +100,8 @@
         <label id="r_min_label" for="r_min">Minimal resistance (r_min): 0</label>
       </div>
       <div class="param_slider">
-        <input id="persuasion" type="range" min="0" max="10" value="4" step="0.1">
-        <label id="persuasion_label" for="persuasion">Persuasion: 4</label>
+        <input id="persuasion" type="range" min="0" max="10" value="3" step="0.1">
+        <label id="persuasion_label" for="persuasion">Persuasion: 3</label>
       </div>
       <div class="param_slider">
         <input id="s_o" type="range" min="0" max="0.03" value="0.001" step="0.001">
@@ -116,14 +116,16 @@
       <label id="information_init_label" for="information_init">Information init: -0.1</label>
       </div>
       <div class="param_slider">
-        <input id="active_agents" type="range" min="0.0" max="1.0" value=".1" step="0.01">
-        <label id="active_agents_label" for="active_agents">% Active agents: 10% </label>
+        <input id="active_agents" type="range" min="0.0" max="100.0" value="50" step="1">
+        <label id="active_agents_label" for="active_agents">% Active agents: 50 </label>
     </div>
       <p>
         <b>Mouse move over agents to see their</b>
       </p>
       <p id="agent-info"></p>
       <p id="update-info"></p>
+      <b> Tip: also try Sd noise information = .04, Attention init =.002 <br>
+      Information init = 0, % Active agents = 15 <br> and no activists, to see conflicts arising </b>
     </div>
     <div id="info">
       <p><b>

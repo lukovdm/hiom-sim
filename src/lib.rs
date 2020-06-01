@@ -204,7 +204,7 @@ impl Model {
     }
     fn decay_update(&mut self, count: usize) {
         let mut da =
-            (1.0 + self.active_agents - (count as f32 / self.n as f32)) * self.decay_a;
+            (1.0 + (self.active_agents/100.0) - (count as f32 / self.n as f32)) * self.decay_a;
         da = 1f32.min(da);
         self.decay_a = 0.5f32.max(da);
     }
