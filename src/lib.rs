@@ -289,10 +289,6 @@ impl Model {
         self.s_i = s_i;
     }
 
-    pub fn set_decay_a(&mut self, decay_a: f32) {
-        self.decay_a = decay_a;
-    }
-
     pub fn set_r_min(&mut self, r_min: f32) {
         self.r_min = r_min;
     }

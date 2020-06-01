@@ -13,6 +13,7 @@ const MIN_A = -1.0;
 const MAX_A = 1.0;
 const NSHADES = 100;
 const T_O = 0;
+const DECAY_A = .9;
 
 let colors = colormap({
     colormap: 'picnic',
@@ -35,7 +36,6 @@ const update_info_pre = document.getElementById("update-info");
 const d_a_slider = document.getElementById("d_a");
 const s_o_slider = document.getElementById("s_o");
 const s_i_slider = document.getElementById("s_i");
-const decay_a_slider = document.getElementById("decay_a");
 const decay_i_slider = document.getElementById("decay_i");
 const r_min_slider = document.getElementById("r_min");
 const persuasion_slider = document.getElementById("persuasion");
@@ -69,7 +69,7 @@ const calculate_cell_size = () => {
 }
 
 let cell_size = calculate_cell_size();
-let model = Model.new(size, decay_i_slider.value, s_o_slider.value,s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O,active_agents_slider.value);
+let model = Model.new(size, decay_i_slider.value, s_o_slider.value,s_i_slider.value, d_a_slider.value, DECAY_A, persuasion_slider.value, r_min_slider.value, T_O,active_agents_slider.value);
 
 const getIndex = (row, column) => {
     return (row * size + column) * 3;
@@ -149,7 +149,7 @@ const play = () => {
 const reset = () => {
     size = new_size;
     cell_size = calculate_cell_size();
-    model = Model.new(size, decay_i_slider.value, s_o_slider.value, s_i_slider.value, d_a_slider.value, decay_a_slider.value, persuasion_slider.value, r_min_slider.value, T_O,active_agents_slider.value,attention_init,information_init);
+    model = Model.new(size, decay_i_slider.value, s_o_slider.value, s_i_slider.value, d_a_slider.value, DECAY_A, persuasion_slider.value, r_min_slider.value, T_O,active_agents_slider.value, attention_init,information_init);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     draw();
 }
@@ -217,11 +217,6 @@ s_o_slider.oninput = () => {
 s_i_slider.oninput = () => {
     model.set_s_i(s_i_slider.value);
     document.getElementById("s_i_label").textContent = "Sd noise information: " + s_i_slider.value;
-}
-
-decay_a_slider.oninput = () => {
-    model.set_decay_a(decay_a_slider.value);
-    document.getElementById("decay_a_label").textContent = "Decay attention: " + decay_a_slider.value;
 }
 
 decay_i_slider.oninput = () => {
