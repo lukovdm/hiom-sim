@@ -58,11 +58,11 @@ pub struct Agent {
 }
 
 impl Agent {
-    pub fn new(attention_init: f32) -> Agent {
+    pub fn new(attention_init: f32,information_init: f32) -> Agent {
         Agent {
             attention: attention_init,
             opinion: norm_random(0.0, 0.01),
-            information: norm_random(-0.1, 0.0),
+            information: norm_random(information_init, 0.0),
         }
     }
 
@@ -111,9 +111,9 @@ pub struct BlockNetwork {
 
 #[wasm_bindgen]
 impl BlockNetwork {
-    pub fn new (width: usize, height: usize, attention_init: f32) -> BlockNetwork {
+    pub fn new (width: usize, height: usize, attention_init: f32, information_init: f32) -> BlockNetwork {
         let cells = (0..width*height).map(|_i| {
-            Agent::new(attention_init)
+            Agent::new(attention_init,information_init)
         }).collect();
         BlockNetwork {
             width,
@@ -182,7 +182,7 @@ pub struct Model {
 
 #[wasm_bindgen]
 impl Model {
-    pub fn new(l: usize, decay_i: f32, s_o: f32, s_i: f32, d_a: f32, decay_a: f32, persuasion: f32, r_min: f32, t_o: f32, attention_init: f32) -> Model {
+    pub fn new(l: usize, decay_i: f32, s_o: f32, s_i: f32, d_a: f32, decay_a: f32, persuasion: f32, r_min: f32, t_o: f32, attention_init: f32, information_init: f32) -> Model {
         Model {
             n: l*l,
             d_t: 0.01,
@@ -195,7 +195,7 @@ impl Model {
             persuasion,
             r_min,
             t_o,
-            network: BlockNetwork::new(l, l, attention_init),
+            network: BlockNetwork::new(l, l, attention_init, information_init),
             last_updated_count: 0,
         }
     }
